@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Feed.css";
 import CreateIcon from "@mui/icons-material/Create";
 import InputOption from "./InputOption.js";
@@ -7,12 +7,40 @@ import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import Post from "./Post.js";
+import { db } from "./firebase";
+import firebase from "firebase/compat/app";
 
 const Feed = () => {
+  const [input, setInput] = useState("");
   const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    // Create a realtime event listener to firebase so that whenever post changes, it will update it
+    db.collection("posts")
+      .orderBy("timestamp", "desc")
+      .onSnapshot((snapshot) =>
+        setPosts(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            data: doc.data(),
+          }))
+        )
+      );
+  }, []);
 
   const sendPost = (e) => {
     e.preventDefault(); // Prevent websites from loading
+
+    db.collection("posts").add({
+      name: "Fahad Masood",
+      description: "This is a test description",
+      message: input,
+      photoUrl: "",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      // using serverTimestamp lets the users have the same timezone irrespective of their location
+    });
+
+    setInput(""); //Input field gets cleared when enter is hit
   };
 
   return (
@@ -21,7 +49,11 @@ const Feed = () => {
         <div className="feed_input">
           <CreateIcon />
           <form action="">
-            <input type="text" />
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              type="text"
+            />
             <button onClick={sendPost} type="submit">
               Send
             </button>
@@ -40,14 +72,15 @@ const Feed = () => {
         </div>
       </div>
       {/* Posts */}
-      {posts.map(() => (
-        <Post />
+      {posts.map(({ id, data: { name, description, message, photoUrl } }) => (
+        <Post
+          key={id} // It is important so that it only renders the last element that is added and not all the elements
+          name={name}
+          description={description}
+          message={message}
+          photoUrl={photoUrl}
+        />
       ))}
-      <Post
-        name="Fahad Masood"
-        description="This is a test description"
-        message="This is a test message"
-      />
     </div>
   );
 };
