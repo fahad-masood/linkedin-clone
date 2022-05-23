@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Feed from "./Feed";
 import { useSelector } from "react-redux";
 import { selectUser } from "./features/userSlice";
+import Login from "./Login";
 
 function App() {
   // Pull the user from userSlice
@@ -12,17 +13,19 @@ function App() {
 
   return (
     <div className="app">
-      {/* Header */}
       <Header />
 
-      {/* App body */}
-      <div className="app_body">
-        {/* Sidebar */}
-        <Sidebar />
-        {/* Feed */}
-        <Feed />
-      </div>
-      {/* Widgets */}
+      {!user ? (
+        <Login />
+      ) : (
+        <div className="app_body">
+          <Sidebar />
+
+          <Feed />
+
+          {/* Widgets */}
+        </div>
+      )}
     </div>
   );
 }
